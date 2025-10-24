@@ -5,16 +5,21 @@ import 'core/routes/app_routes.dart';
 import 'core/themes/app_theme.dart';
 import 'core/config/app_config.dart';
 import 'core/services/connectivity_service.dart';
+import 'core/services/storage_service.dart';
+import 'core/services/token_service.dart';
 import 'core/widgets/no_internet_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize storage service first
+  await Get.putAsync(() => StorageService().init());
+
+  // Initialize token service
+  Get.put(TokenService());
+
   // Initialize connectivity service
   await Get.putAsync(() => ConnectivityService().init());
-
-  // Initialize other services here if needed
-  // Example: await Get.putAsync(() => StorageService().init());
 
   runApp(const MyApp());
 }

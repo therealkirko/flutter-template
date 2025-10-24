@@ -1,61 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../themes/app_theme.dart';
 
 /// UI helper functions for displaying snackbars, dialogs, etc.
 class UiHelpers {
   /// Show success snackbar
   static void showSuccess(String message, {String? title}) {
+    Get.closeAllSnackbars();
     Get.snackbar(
-      title ?? 'Success',
+      title ?? '👏 Success',
       message,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      icon: const Icon(Icons.check_circle, color: Colors.white),
-      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.accent,
+      colorText: AppColors.card,
+      icon: Icon(Icons.celebration_outlined, color: AppColors.card),
+      snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(16),
       duration: const Duration(seconds: 3),
+      borderRadius: 12,
+      shouldIconPulse: true,
     );
   }
 
   /// Show error snackbar
   static void showError(String message, {String? title}) {
+    Get.closeAllSnackbars();
     Get.snackbar(
-      title ?? 'Error',
+      title ?? '⚡ Error',
       message,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-      icon: const Icon(Icons.error, color: Colors.white),
-      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.secondary,
+      colorText: AppColors.card,
+      icon: Icon(Icons.error_outline_outlined, color: AppColors.card),
+      snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(16),
       duration: const Duration(seconds: 4),
+      borderRadius: 12,
+      shouldIconPulse: true,
     );
   }
 
   /// Show info snackbar
   static void showInfo(String message, {String? title}) {
+    Get.closeAllSnackbars();
     Get.snackbar(
-      title ?? 'Info',
+      title ?? '⚠️ Info',
       message,
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-      icon: const Icon(Icons.info, color: Colors.white),
-      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.primary,
+      colorText: AppColors.card,
+      icon: Icon(Icons.info_outline_rounded, color: AppColors.card),
+      snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(16),
       duration: const Duration(seconds: 3),
+      borderRadius: 12,
+      shouldIconPulse: true,
     );
   }
 
   /// Show warning snackbar
   static void showWarning(String message, {String? title}) {
+    Get.closeAllSnackbars();
     Get.snackbar(
-      title ?? 'Warning',
+      title ?? '⚠️ Warning',
       message,
       backgroundColor: Colors.orange,
       colorText: Colors.white,
       icon: const Icon(Icons.warning, color: Colors.white),
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(16),
       duration: const Duration(seconds: 3),
+      borderRadius: 12,
+      shouldIconPulse: true,
     );
   }
 
@@ -66,15 +79,23 @@ class UiHelpers {
         onWillPop: () async => false,
         child: Center(
           child: Card(
+            color: AppColors.card,
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircularProgressIndicator(),
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primary,
+                    ),
+                  ),
                   if (message != null) ...[
                     const SizedBox(height: 16),
-                    Text(message),
+                    Text(
+                      message,
+                      style: TextStyle(color: AppColors.text),
+                    ),
                   ],
                 ],
               ),
@@ -111,6 +132,10 @@ class UiHelpers {
           ),
           ElevatedButton(
             onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.card,
+            ),
             child: Text(confirmText),
           ),
         ],
@@ -129,7 +154,7 @@ class UiHelpers {
   static Future<T?> showBottomSheet<T>(Widget child) async {
     return await Get.bottomSheet<T>(
       child,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
