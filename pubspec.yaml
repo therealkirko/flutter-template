@@ -38,6 +38,9 @@ dependencies:
   # GetX for state management, routing, and dependency injection
   get: ^4.6.5
 
+  # Connectivity checking
+  connectivity_plus: ^5.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
