@@ -35,6 +35,15 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
 
+  # GetX for state management, routing, and dependency injection
+  get: ^4.6.5
+
+  # Connectivity checking
+  connectivity_plus: ^5.0.2
+
+  # PIN input widget
+  pinput: ^3.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
