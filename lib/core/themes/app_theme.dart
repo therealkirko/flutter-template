@@ -23,13 +23,13 @@ class AppColors {
     onPrimary: AppColors.card,
   );
 
-  static final TextTheme textTheme = TextTheme(
+  static const TextTheme textTheme = TextTheme(
     bodyMedium: TextStyle(color: AppColors.text),
     bodySmall: TextStyle(color: AppColors.subduedText),
     titleLarge: TextStyle(color: AppColors.text, fontWeight: FontWeight.bold),
   );
 
-  static final AppBarTheme appBarTheme = AppBarTheme(
+  static const AppBarTheme appBarTheme = AppBarTheme(
     backgroundColor: AppColors.primary,
     foregroundColor: AppColors.card,
     elevation: 0,
@@ -63,7 +63,7 @@ class AppColors {
     fillColor: AppColors.card,
   );
 
-  static final CardTheme cardTheme = CardTheme(
+  static final CardThemeData cardTheme = CardThemeData(
     elevation: 2,
     color: AppColors.card,
     shape: RoundedRectangleBorder(
@@ -124,7 +124,7 @@ class AppTheme {
         filled: true,
         fillColor: const Color(0xFF1E1E1E),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         color: const Color(0xFF1E1E1E),
         shape: RoundedRectangleBorder(

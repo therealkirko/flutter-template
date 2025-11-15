@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
-/// Connectivity service for monitoring internet connection
 class ConnectivityService extends GetxService {
   final Connectivity _connectivity = Connectivity();
-  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   // Observable state
   final isConnected = true.obs;
@@ -17,10 +16,10 @@ class ConnectivityService extends GetxService {
     await checkConnectivity();
 
     // Listen to connectivity changes
-    _connectivitySubscription = _connectivity.onConnectivityChanged
-        .listen((List<ConnectivityResult> results) {
-      _updateConnectionStatus(results);
-    });
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen((ConnectivityResult result) {
+          _updateConnectionStatus(result);
+        });
 
     return this;
   }
@@ -28,8 +27,8 @@ class ConnectivityService extends GetxService {
   /// Check current connectivity status
   Future<void> checkConnectivity() async {
     try {
-      final results = await _connectivity.checkConnectivity();
-      _updateConnectionStatus(results);
+      final result = await _connectivity.checkConnectivity();
+      _updateConnectionStatus(result);
     } catch (e) {
       print('Error checking connectivity: $e');
       isConnected.value = false;
@@ -37,22 +36,10 @@ class ConnectivityService extends GetxService {
   }
 
   /// Update connection status based on connectivity result
-  void _updateConnectionStatus(List<ConnectivityResult> results) {
-    if (results.isEmpty) {
-      isConnected.value = false;
-      connectionType.value = ConnectivityResult.none;
-      return;
-    }
-
-    // Get the first result (primary connection)
-    final result = results.first;
+  void _updateConnectionStatus(ConnectivityResult result) {
     connectionType.value = result;
-
-    // Update connection status
-    // Consider mobile, wifi, ethernet, and vpn as connected
     isConnected.value = result != ConnectivityResult.none;
 
-    // Log connection changes
     if (isConnected.value) {
       print('✅ Connected via ${_getConnectionTypeName(result)}');
     } else {
@@ -60,7 +47,6 @@ class ConnectivityService extends GetxService {
     }
   }
 
-  /// Get human-readable connection type name
   String _getConnectionTypeName(ConnectivityResult result) {
     switch (result) {
       case ConnectivityResult.wifi:
@@ -81,9 +67,7 @@ class ConnectivityService extends GetxService {
     }
   }
 
-  /// Get connection type display name
-  String get connectionTypeName =>
-      _getConnectionTypeName(connectionType.value);
+  String get connectionTypeName => _getConnectionTypeName(connectionType.value);
 
   @override
   void onClose() {

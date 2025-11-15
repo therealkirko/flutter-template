@@ -69,7 +69,7 @@ class TokenService extends GetxService {
   }
 
   /// Check if token is about to expire (within 5 minutes)
-  bool isTokenExpiringS oon() {
+  bool isTokenExpiringsoon() {
     final expiresIn = _storage.read<int>(_expiresInKey);
     final savedAt = _storage.read<int>(_tokenSavedAtKey);
 
