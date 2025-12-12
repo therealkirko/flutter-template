@@ -7,6 +7,7 @@ import 'core/config/app_config.dart';
 import 'core/services/connectivity_service.dart';
 import 'core/services/storage_service.dart';
 import 'core/services/token_service.dart';
+import 'core/services/api_service.dart';
 import 'core/widgets/no_internet_widget.dart';
 
 void main() async {
@@ -17,6 +18,9 @@ void main() async {
 
   // Initialize token service
   Get.put(TokenService());
+
+  // Initialize API service
+  Get.put(ApiService());
 
   // Initialize connectivity service
   await Get.putAsync(() => ConnectivityService().init());
