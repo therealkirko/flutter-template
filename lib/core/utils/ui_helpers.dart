@@ -12,7 +12,7 @@ class UiHelpers {
       message,
       backgroundColor: AppColors.accent,
       colorText: AppColors.card,
-      icon: Icon(Icons.celebration_outlined, color: AppColors.card),
+      icon: const Icon(Icons.celebration_outlined, color: AppColors.card),
       snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(16),
       duration: const Duration(seconds: 3),
@@ -29,7 +29,7 @@ class UiHelpers {
       message,
       backgroundColor: AppColors.secondary,
       colorText: AppColors.card,
-      icon: Icon(Icons.error_outline_outlined, color: AppColors.card),
+      icon: const Icon(Icons.error_outline_outlined, color: AppColors.card),
       snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(16),
       duration: const Duration(seconds: 4),
@@ -46,7 +46,7 @@ class UiHelpers {
       message,
       backgroundColor: AppColors.primary,
       colorText: AppColors.card,
-      icon: Icon(Icons.info_outline_rounded, color: AppColors.card),
+      icon: const Icon(Icons.info_outline_rounded, color: AppColors.card),
       snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(16),
       duration: const Duration(seconds: 3),
@@ -85,7 +85,7 @@ class UiHelpers {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(
+                  const CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
                       AppColors.primary,
                     ),
@@ -94,7 +94,7 @@ class UiHelpers {
                     const SizedBox(height: 16),
                     Text(
                       message,
-                      style: TextStyle(color: AppColors.text),
+                      style: const TextStyle(color: AppColors.text),
                     ),
                   ],
                 ],
