@@ -1,0 +1,20 @@
+name: flutter_module_generator
+description: A CLI tool to generate modular Flutter modules with GetX state management, following best practices.
+version: 1.0.0
+homepage: https://github.com/therealkirko/flutter-template
+repository: https://github.com/therealkirko/flutter-template
+
+environment:
+  sdk: '>=2.17.0 <4.0.0'
+
+dependencies:
+  args: ^2.4.2
+  path: ^1.8.3
+  recase: ^4.1.0
+
+dev_dependencies:
+  lints: ^2.1.0
+  test: ^1.24.0
+
+executables:
+  fmg:
