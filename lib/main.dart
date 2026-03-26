@@ -1,35 +1,36 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'core/routes/app_pages.dart';
-import 'core/routes/app_routes.dart';
-import 'core/themes/app_theme.dart';
-import 'core/config/app_config.dart';
-import 'core/services/connectivity_service.dart';
-import 'core/services/storage_service.dart';
-import 'core/services/token_service.dart';
-import 'core/services/api_service.dart';
-import 'core/widgets/no_internet_widget.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:template/core/routes/app_pages.dart';
+import 'package:template/core/themes/app_theme.dart';
+import 'package:template/core/routes/app_routes.dart';
+import 'package:template/core/config/app_config.dart';
+import 'package:template/core/utils/storage_utility.dart';
+import 'package:template/modules/auth/controllers/auth_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize storage service first
-  await Get.putAsync(() => StorageService().init());
+  // Initialize auth controller
+  final controller = Get.put(AuthController());
 
-  // Initialize token service
-  Get.put(TokenService());
+  // Check authentication status
+  final storage = StorageUtility();
+  final token = await storage.read('accessToken');
 
-  // Initialize API service
-  Get.put(ApiService());
+  bool authenticated = false;
 
-  // Initialize connectivity service
-  await Get.putAsync(() => ConnectivityService().init());
+  if (token != null) {
+    authenticated = await controller.verifyToken();
+  }
 
-  runApp(const MyApp());
+  runApp(MyApp(authenticated: authenticated));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final bool authenticated;
+  const MyApp({super.key, required this.authenticated});
 
   @override
   Widget build(BuildContext context) {
@@ -38,37 +39,30 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
 
       // Theme configuration
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      theme: _buildTheme(Brightness.light),
 
-      // GetX routing
-      initialRoute: AppPages.initial,
+      // Navigation
+      initialRoute: authenticated ? AppRoutes.home : AppPages.initial,
       getPages: AppPages.routes,
-      defaultTransition: Transition.cupertino,
 
-      // Builder to wrap all pages with connectivity check
-      builder: (context, child) {
-        return ConnectivityWrapper(
-          child: NoInternetWidget(
-            child: child ?? const SizedBox.shrink(),
-          ),
-        );
-      },
-
-      // Unknown route handler
-      unknownRoute: GetPage(
-        name: '/not-found',
-        page: () => const Scaffold(
-          body: Center(
-            child: Text('Page not found'),
-          ),
-        ),
-      ),
-
-      // Localization (optional - configure if needed)
-      // locale: Get.deviceLocale,
-      // fallbackLocale: const Locale('en', 'US'),
     );
   }
+
+
+  ThemeData _buildTheme(Brightness brightness) {
+    var baseTheme = AppColors.theme;
+
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.latoTextTheme(baseTheme.textTheme),
+      appBarTheme: baseTheme.appBarTheme.copyWith(
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
+      ),
+    );
+  }
+
 }

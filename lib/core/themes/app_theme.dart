@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// App color scheme
 class AppColors {
@@ -40,10 +41,17 @@ class AppColors {
       fontSize: 18,
       fontWeight: FontWeight.w600,
     ),
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark, // Dark icons for light theme
+      statusBarBrightness: Brightness.light,    // For iOS
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
   );
 
   static final ElevatedButtonThemeData elevatedButtonTheme =
-      ElevatedButtonThemeData(
+  ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: AppColors.primary,
       foregroundColor: AppColors.card,
@@ -55,7 +63,7 @@ class AppColors {
   );
 
   static final InputDecorationTheme inputDecorationTheme =
-      InputDecorationTheme(
+  InputDecorationTheme(
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
     ),
@@ -82,6 +90,7 @@ class AppColors {
     elevatedButtonTheme: AppColors.elevatedButtonTheme,
     inputDecorationTheme: inputDecorationTheme,
     cardTheme: cardTheme,
+    canvasColor: AppColors.card,
   );
 }
 
@@ -105,6 +114,13 @@ class AppTheme {
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w600,
+        ),
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light, // Light icons for dark theme
+          statusBarBrightness: Brightness.dark,      // For iOS
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.light,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(

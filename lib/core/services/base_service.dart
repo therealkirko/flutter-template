@@ -1,246 +1,306 @@
 import 'dart:io';
-import 'package:get/get.dart';
-import 'api_service.dart';
-import '../models/error_response_model.dart';
-import '../utils/app_exception.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:template/core/utils/storage_utility.dart';
+import 'package:template/core/models/response_model.dart';
+import 'package:template/core/utils/exception_utility.dart';
 
-/// Base service class that all module services should extend
-/// Provides common HTTP methods: GET, POST, PUT, PATCH, DELETE
-/// Supports file uploads with multipart/form-data
-abstract class BaseService extends GetxService {
-  late final ApiService _apiService;
+abstract class BaseService {
+  // Base configuration
+  static const String baseUrl = 'https://mavazi.chara.ke/api';
+  static String _token = '';
 
-  @override
-  void onInit() {
-    super.onInit();
-    _apiService = Get.find<ApiService>();
+  // Storage instance
+  final StorageUtility _storage = StorageUtility();
+
+
+  /// Get authentication token from storage
+  Future<String> getToken() async {
+    if (_token.isEmpty) {
+      _token = await _storage.read('accessToken') ?? '';
+    }
+    return _token;
   }
 
-  /// GET request
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await get('/users', query: {'page': 1});
-  /// ```
-  Future<Response<T>> get<T>(
-    String endpoint, {
-    Map<String, dynamic>? query,
-  }) async {
-    return await _apiService.getRequest<T>(endpoint, query: query);
+  /// Clear cached token (useful for logout)
+  static void clearToken() {
+    _token = '';
   }
 
-  /// POST request
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await post('/users', body: {'name': 'John'});
-  /// ```
-  Future<Response<T>> post<T>(
-    String endpoint, {
-    dynamic body,
-  }) async {
-    return await _apiService.postRequest<T>(endpoint, body: body);
+  /// Build headers with authentication and terminal ID
+  Future<Map<String, String>> headers() async {
+    await getToken();
+
+    final baseHeaders = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $_token',
+
+    };
+
+    return baseHeaders;
   }
 
-  /// PUT request
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await put('/users/1', body: {'name': 'Jane'});
-  /// ```
-  Future<Response<T>> put<T>(
-    String endpoint, {
-    dynamic body,
-  }) async {
-    return await _apiService.putRequest<T>(endpoint, body: body);
-  }
+  /// Build URI with query parameters
+  Uri buildUri(String path, {Map<String, dynamic>? queryParams}) {
+    final uri = Uri.parse('$baseUrl$path');
 
-  /// PATCH request
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await patch('/users/1', body: {'name': 'Jane'});
-  /// ```
-  Future<Response<T>> patch<T>(
-    String endpoint, {
-    dynamic body,
-  }) async {
-    return await _apiService.patchRequest<T>(endpoint, body: body);
-  }
+    if (queryParams != null && queryParams.isNotEmpty) {
+      // Convert all values to strings and filter out nulls
+      final stringParams = queryParams.map(
+              (key, value) => MapEntry(key, value?.toString() ?? '')
+      )..removeWhere((key, value) => value.isEmpty);
 
-  /// DELETE request
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await delete('/users/1');
-  /// ```
-  Future<Response<T>> delete<T>(
-    String endpoint, {
-    Map<String, dynamic>? query,
-  }) async {
-    return await _apiService.deleteRequest<T>(endpoint, query: query);
-  }
-
-  /// POST request with file upload
-  /// Automatically converts to multipart/form-data
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await postWithFile(
-  ///   '/users/avatar',
-  ///   files: {'avatar': File('path/to/image.jpg')},
-  ///   data: {'name': 'John'},
-  /// );
-  /// ```
-  Future<Response<T>> postWithFile<T>(
-    String endpoint, {
-    required Map<String, File> files,
-    Map<String, dynamic>? data,
-  }) async {
-    final formData = FormData({});
-
-    // Add regular data fields
-    if (data != null) {
-      data.forEach((key, value) {
-        formData.fields.add(MapEntry(key, value.toString()));
-      });
+      return uri.replace(queryParameters: stringParams);
     }
 
-    // Add files
-    for (var entry in files.entries) {
-      final file = entry.value;
-      final fileName = file.path.split('/').last;
+    return uri;
+  }
 
-      formData.files.add(
-        MapEntry(
-          entry.key,
-          MultipartFile(file, filename: fileName),
-        ),
+  /// Handle GET requests
+  Future<T> get<T>(
+      String path, {
+        Map<String, dynamic>? queryParams,
+        required T Function(Map<String, dynamic>) fromJson,
+      }) async {
+    final uri = buildUri(path, queryParams: queryParams);
+    final requestHeaders = await headers();
+
+    try {
+      final response = await http.get(uri, headers: requestHeaders);
+      return _handleResponse<T>(response, fromJson);
+    } on SocketException {
+      throw NetworkException(
+        'error',
+        'Network error. Please check your internet connection.',
       );
+    } catch (e) {
+      if (e is ExceptionUtility) rethrow;
+      throw BadRequestException('error', e.toString());
     }
-
-    return await _apiService.postRequest<T>(endpoint, body: formData);
   }
 
-  /// PUT request with file upload
-  /// Automatically converts to multipart/form-data
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await putWithFile(
-  ///   '/users/1/avatar',
-  ///   files: {'avatar': File('path/to/image.jpg')},
-  ///   data: {'name': 'John'},
-  /// );
-  /// ```
-  Future<Response<T>> putWithFile<T>(
-    String endpoint, {
-    required Map<String, File> files,
-    Map<String, dynamic>? data,
-  }) async {
-    final formData = FormData({});
+  /// Handle POST requests
+  Future<T> post<T>(
+      String path, {
+        Map<String, dynamic>? body,
+        Map<String, dynamic>? queryParams,
+        required T Function(Map<String, dynamic>) fromJson,
+      }) async {
+    final uri = buildUri(path, queryParams: queryParams);
+    final requestHeaders = await headers();
 
-    // Add regular data fields
-    if (data != null) {
-      data.forEach((key, value) {
-        formData.fields.add(MapEntry(key, value.toString()));
-      });
-    }
-
-    // Add files
-    for (var entry in files.entries) {
-      final file = entry.value;
-      final fileName = file.path.split('/').last;
-
-      formData.files.add(
-        MapEntry(
-          entry.key,
-          MultipartFile(file, filename: fileName),
-        ),
+    try {
+      final response = await http.post(
+        uri,
+        headers: requestHeaders,
+        body: body != null ? jsonEncode(body) : null,
       );
+      return _handleResponse<T>(response, fromJson);
+    } on SocketException {
+      throw NetworkException(
+        'error',
+        'Network error. Please check your internet connection.',
+      );
+    } catch (e) {
+      if (e is ExceptionUtility) rethrow;
+      throw BadRequestException('error', e.toString());
     }
-
-    return await _apiService.putRequest<T>(endpoint, body: formData);
   }
 
-  /// POST request with multiple files
-  /// Supports array of files for a single field
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await postWithFiles(
-  ///   '/gallery/upload',
-  ///   files: {
-  ///     'images': [File('image1.jpg'), File('image2.jpg')],
-  ///     'thumbnail': [File('thumb.jpg')],
-  ///   },
-  ///   data: {'gallery_name': 'My Gallery'},
-  /// );
-  /// ```
-  Future<Response<T>> postWithFiles<T>(
-    String endpoint, {
-    required Map<String, List<File>> files,
-    Map<String, dynamic>? data,
-  }) async {
-    final formData = FormData({});
+  /// Handle PUT requests
+  Future<T> put<T>(
+      String path, {
+        Map<String, dynamic>? body,
+        Map<String, dynamic>? queryParams,
+        required T Function(Map<String, dynamic>) fromJson,
+      }) async {
+    final uri = buildUri(path, queryParams: queryParams);
+    final requestHeaders = await headers();
 
-    // Add regular data fields
-    if (data != null) {
-      data.forEach((key, value) {
-        formData.fields.add(MapEntry(key, value.toString()));
-      });
+    try {
+      final response = await http.put(
+        uri,
+        headers: requestHeaders,
+        body: body != null ? jsonEncode(body) : null,
+      );
+      return _handleResponse<T>(response, fromJson);
+    } on SocketException {
+      throw NetworkException(
+        'error',
+        'Network error. Please check your internet connection.',
+      );
+    } catch (e) {
+      if (e is ExceptionUtility) rethrow;
+      throw BadRequestException('error', e.toString());
     }
+  }
 
-    // Add files
-    for (var entry in files.entries) {
-      for (var file in entry.value) {
-        final fileName = file.path.split('/').last;
+  /// Handle PATCH requests
+  Future<T> patch<T>(
+      String path, {
+        Map<String, dynamic>? body,
+        Map<String, dynamic>? queryParams,
+        required T Function(Map<String, dynamic>) fromJson,
+      }) async {
+    final uri = buildUri(path, queryParams: queryParams);
+    final requestHeaders = await headers();
 
-        formData.files.add(
-          MapEntry(
-            '${entry.key}[]', // Array notation for multiple files
-            MultipartFile(file, filename: fileName),
-          ),
+    try {
+      final response = await http.patch(
+        uri,
+        headers: requestHeaders,
+        body: body != null ? jsonEncode(body) : null,
+      );
+      return _handleResponse<T>(response, fromJson);
+    } on SocketException {
+      throw NetworkException(
+        'error',
+        'Network error. Please check your internet connection.',
+      );
+    } catch (e) {
+      if (e is ExceptionUtility) rethrow;
+      throw BadRequestException('error', e.toString());
+    }
+  }
+
+  /// Handle DELETE requests
+  Future<T> delete<T>(
+      String path, {
+        Map<String, dynamic>? queryParams,
+        required T Function(Map<String, dynamic>) fromJson,
+      }) async {
+    final uri = buildUri(path, queryParams: queryParams);
+    final requestHeaders = await headers();
+
+    try {
+      final response = await http.delete(uri, headers: requestHeaders);
+      return _handleResponse<T>(response, fromJson);
+    } on SocketException {
+      throw NetworkException(
+        'error',
+        'Network error. Please check your internet connection.',
+      );
+    } catch (e) {
+      if (e is ExceptionUtility) rethrow;
+      throw BadRequestException('error', e.toString());
+    }
+  }
+
+  /// Handle HTTP responses uniformly
+  T _handleResponse<T>(
+      http.Response response,
+      T Function(Map<String, dynamic>) fromJson,
+      ) {
+    final responseBody = response.body.isNotEmpty
+        ? jsonDecode(response.body)
+        : <String, dynamic>{};
+
+    switch (response.statusCode) {
+      case 200:
+      case 201:
+        return fromJson(responseBody);
+
+      case 204: // No content
+        return fromJson(<String, dynamic>{});
+
+      case 400:
+        final message = _parseErrorResponse(responseBody);
+        throw BadRequestException('error', message);
+
+      case 401:
+        final message = _parseErrorResponse(responseBody);
+        clearToken(); // Clear cached token
+        throw UnauthorizedException('error', message);
+
+      case 403:
+        final message = _parseErrorResponse(responseBody);
+        throw ForbiddenException('error', message);
+
+      case 404:
+        final message = _parseErrorResponse(responseBody);
+        throw NotFoundException('error', message);
+
+      case 409:
+        final message = _parseErrorResponse(responseBody);
+        throw DuplicateRequestException('error', message);
+
+      case 422:
+        final message = _parseErrorResponse(responseBody);
+        throw ValidationException('error', message);
+
+      case 429:
+        throw RateLimitException(
+          'error',
+          'Too many requests. Please try again later.',
         );
-      }
-    }
 
-    return await _apiService.postRequest<T>(endpoint, body: formData);
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        throw ServerException(
+          'error',
+          'Server error occurred. Please try again later.',
+        );
+
+      default:
+        final message = _parseErrorResponse(responseBody);
+        throw BadRequestException('error', message);
+    }
   }
 
-  /// Helper method to handle response and extract data
-  /// Throws appropriate exceptions if response is not successful
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await get('/users');
-  /// final data = handleResponse(response);
-  /// ```
-  T handleResponse<T>(Response<T> response) {
-    if (response.hasError) {
-      throw AppException('error', response.statusText ?? 'Request failed');
+  /// Parse error response message
+  String _parseErrorResponse(Map<String, dynamic> responseBody) {
+    try {
+      final res = Response.fromJson(responseBody);
+      return res.message ?? 'An error occurred';
+    } catch (e) {
+      // If Response.fromJson fails, try to extract message directly
+      return responseBody['message'] ??
+          responseBody['error'] ??
+          'An unexpected error occurred';
     }
-
-    if (response.body == null) {
-      throw AppException('error', 'Empty response body');
-    }
-
-    return response.body!;
   }
 
-  /// Helper method to extract data from standard API response
-  /// Assumes response format: { "success": bool, "message": string, "data": T }
-  ///
-  /// Example:
-  /// ```dart
-  /// final response = await get('/users');
-  /// final users = extractData<List>(response, 'data');
-  /// ```
-  T? extractData<T>(Response response, String key) {
-    if (response.body is Map) {
-      final map = response.body as Map<String, dynamic>;
-      return map[key] as T?;
+  /// Helper method for multipart requests (file uploads)
+  Future<T> multipart<T>(
+      String path, {
+        required Map<String, String> fields,
+        required List<http.MultipartFile> files,
+        required T Function(Map<String, dynamic>) fromJson,
+      }) async {
+    final uri = buildUri(path);
+    final requestHeaders = await headers();
+
+    try {
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add headers (remove Content-Type, it will be set automatically)
+      requestHeaders.forEach((key, value) {
+        if (key.toLowerCase() != 'content-type') {
+          request.headers[key] = value;
+        }
+      });
+
+      // Add fields
+      request.fields.addAll(fields);
+
+      // Add files
+      request.files.addAll(files);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse<T>(response, fromJson);
+    } on SocketException {
+      throw NetworkException(
+        'error',
+        'Network error. Please check your internet connection.',
+      );
+    } catch (e) {
+      if (e is ExceptionUtility) rethrow;
+      throw BadRequestException('error', e.toString());
     }
-    return null;
   }
 }

@@ -19,5 +19,14 @@ class AppRoutes {
   static const String editProfile = '/profile/edit';
   static const String settings = '/profile/settings';
 
-  // Add more routes as needed
+  // Requisition module routes
+  static const String requisition = '/requisition';
+  static const String requisitions = '/requisitions';
+  static const String createRequisition = '/requisitions/step1';
+  static const String createRequisition2 = '/requisitions/step2';
+
+  // Delivery module routes
+  static const String delivery = '/delivery';
+  static const String deliveryDetails = '/delivery/details';
+  static const String receivables = '/delivery/receivables';
 }

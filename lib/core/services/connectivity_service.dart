@@ -30,7 +30,6 @@ class ConnectivityService extends GetxService {
       final result = await _connectivity.checkConnectivity();
       _updateConnectionStatus(result);
     } catch (e) {
-      print('Error checking connectivity: $e');
       isConnected.value = false;
     }
   }
@@ -39,12 +38,6 @@ class ConnectivityService extends GetxService {
   void _updateConnectionStatus(ConnectivityResult result) {
     connectionType.value = result;
     isConnected.value = result != ConnectivityResult.none;
-
-    if (isConnected.value) {
-      print('✅ Connected via ${_getConnectionTypeName(result)}');
-    } else {
-      print('❌ No internet connection');
-    }
   }
 
   String _getConnectionTypeName(ConnectivityResult result) {

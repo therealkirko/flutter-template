@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/routes/app_routes.dart';
-import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/custom_text_field.dart';
-import '../controllers/auth_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:template/core/widgets/custom_button.dart';
+import 'package:template/core/widgets/custom_text_field.dart';
+import 'package:template/modules/auth/controllers/auth_controller.dart';
 
-class LoginView extends GetView<AuthController> {
-  const LoginView({Key? key}) : super(key: key);
+class LoginView extends StatelessWidget {
+  LoginView({super.key});
+
+  final controller = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +33,8 @@ class LoginView extends GetView<AuthController> {
                   Text(
                     'Welcome Back',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -41,8 +42,8 @@ class LoginView extends GetView<AuthController> {
                   Text(
                     'Login to your account',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey,
-                        ),
+                      color: Colors.grey,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
@@ -53,19 +54,17 @@ class LoginView extends GetView<AuthController> {
                     hint: 'Enter your email',
                     controller: controller.emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: controller.validateEmail,
                     prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   const SizedBox(height: 16),
 
                   // Password field
                   Obx(
-                    () => CustomTextField(
+                        () => CustomTextField(
                       label: 'Password',
                       hint: 'Enter your password',
                       controller: controller.passwordController,
                       obscureText: !controller.isPasswordVisible.value,
-                      validator: controller.validatePassword,
                       prefixIcon: const Icon(Icons.lock_outlined),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -93,24 +92,11 @@ class LoginView extends GetView<AuthController> {
 
                   // Login button
                   Obx(
-                    () => CustomButton(
+                        () => CustomButton(
                       text: 'Login',
-                      onPressed: controller.login,
+                      onPressed: () => controller.authenticate(),
                       isLoading: controller.isLoading.value,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Register link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Don't have an account? "),
-                      TextButton(
-                        onPressed: () => Get.toNamed(AppRoutes.register),
-                        child: const Text('Register'),
-                      ),
-                    ],
                   ),
                 ],
               ),

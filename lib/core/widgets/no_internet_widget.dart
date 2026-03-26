@@ -35,8 +35,6 @@ class NoInternetPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final connectivityService = Get.find<ConnectivityService>();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -49,7 +47,7 @@ class NoInternetPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withOpacity(0.1),
+                    color: AppColors.secondary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(

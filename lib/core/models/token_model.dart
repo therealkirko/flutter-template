@@ -1,65 +1,133 @@
-/// Token model for authentication
+// To parse this JSON data, do
+//
+//     final token = tokenFromJson(jsonString);
+
+import 'dart:convert';
+
+Token tokenFromJson(String str) => Token.fromJson(json.decode(str));
+
+String tokenToJson(Token data) => json.encode(data.toJson());
+
 class Token {
-  final bool? success;
-  final String? message;
-  final TokenData? data;
+  String message;
+  Data data;
 
   Token({
-    this.success,
-    this.message,
-    this.data,
+    required this.message,
+    required this.data,
   });
 
-  /// Create from JSON
-  factory Token.fromJson(Map<String, dynamic> json) {
-    return Token(
-      success: json['success'] as bool?,
-      message: json['message'] as String?,
-      data: json['data'] != null ? TokenData.fromJson(json['data']) : null,
-    );
-  }
+  factory Token.fromJson(Map<String, dynamic> json) => Token(
+    message: json["message"],
+    data: Data.fromJson(json["data"]),
+  );
 
-  /// Convert to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'success': success,
-      'message': message,
-      'data': data?.toJson(),
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    "message": message,
+    "data": data.toJson(),
+  };
 }
 
-/// Token data
-class TokenData {
-  final String? accessToken;
-  final String? refreshToken;
-  final String? tokenType;
-  final int? expiresIn;
+class Data {
+  TokenClass? token;
+  User? user;
+  Branch? branch;
 
-  TokenData({
-    this.accessToken,
-    this.refreshToken,
-    this.tokenType,
-    this.expiresIn,
+  Data({
+    this.token,
+    this.user,
+    this.branch,
   });
 
-  /// Create from JSON
-  factory TokenData.fromJson(Map<String, dynamic> json) {
-    return TokenData(
-      accessToken: json['access_token'] as String?,
-      refreshToken: json['refresh_token'] as String?,
-      tokenType: json['token_type'] as String?,
-      expiresIn: json['expires_in'] as int?,
-    );
-  }
+  factory Data.fromJson(Map<String, dynamic> json) => Data(
+    token: json["token"] == null ? null : TokenClass.fromJson(json["token"]),
+    user: json["user"] == null ? null : User.fromJson(json["user"]),
+    branch: json["branch"] == null ? null : Branch.fromJson(json["branch"]),
+  );
 
-  /// Convert to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'access_token': accessToken,
-      'refresh_token': refreshToken,
-      'token_type': tokenType,
-      'expires_in': expiresIn,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    "token": token?.toJson(),
+    "user": user?.toJson(),
+    "branch": branch?.toJson(),
+  };
+}
+
+class Branch {
+  String? id;
+  String? name;
+  String? address;
+
+  Branch({
+    this.id,
+    this.name,
+    this.address,
+  });
+
+  factory Branch.fromJson(Map<String, dynamic> json) => Branch(
+    id: json["id"],
+    name: json["name"],
+    address: json["address"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "name": name,
+    "address": address,
+  };
+}
+
+class TokenClass {
+  String? type;
+  String? accessToken;
+  DateTime? issuedAt;
+
+  TokenClass({
+    this.type,
+    this.accessToken,
+    this.issuedAt,
+  });
+
+  factory TokenClass.fromJson(Map<String, dynamic> json) => TokenClass(
+    type: json["type"],
+    accessToken: json["access_token"],
+    issuedAt: json["issued_at"] == null ? null : DateTime.parse(json["issued_at"]),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "type": type,
+    "access_token": accessToken,
+    "issued_at": issuedAt?.toIso8601String(),
+  };
+}
+
+class User {
+  String? id;
+  String? name;
+  String? email;
+  String? role;
+  String? status;
+
+  User({
+    this.id,
+    this.name,
+    this.email,
+    this.role,
+    this.status,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) => User(
+    id: json["id"],
+    name: json["name"],
+    email: json["email"],
+    role: json["role"],
+    status: json["status"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "name": name,
+    "email": email,
+    "role": role,
+    "status": status,
+  };
 }
