@@ -68,7 +68,6 @@ class DeliveryController  extends GetxController with StateHandlerMixin {
 
         pagination.value = value.data.pagination!;
       }).catchError((error) {
-        print(error.toString());
         handleState('error', error.toString());
       }).whenComplete(() {
         isLoading(false);

@@ -173,7 +173,7 @@ class ReceivableController extends GetxController with StateHandlerMixin {
           "quantity_delivered": delivered,
           "quantity_accepted": accepted,
           "quantity_rejected": rejected,
-          "status": accepted == item.quantityOrdered ? "completed" : "partial",
+          "status": accepted == item.quantityOrdered ? "completed" : "discrepancy",
         };
       }).toList(),
     };
@@ -183,6 +183,8 @@ class ReceivableController extends GetxController with StateHandlerMixin {
     isLoading(true);
 
     final payload = _buildPayload();
+
+    print(payload.toString());
     await DeliveryService().create(payload).then((value) {
       handleState('success', 'Delivery submitted successfully.');
       Get.offAllNamed(AppRoutes.home);
